@@ -1,52 +1,18 @@
 use std::process::Command;
 
+// 1. BURASI ANA MERKEZ (ORKESTRA ŞEFİ)
 fn main() {
     println!("--- Yetki Yukseltme (Privilege Escalation) Araci ---");
-    println!("[*] Sistem analiz ediliyor...");
     
-    // SUID fonksiyonunu cagir
-    suid_taramasi_yap();
-}
-
-fn suid_taramasi_yap() {
-    println!("\n[1] SUID Yetkili Dosyalar Kontrol Ediliyor...");
-    println!("----------------------------------------------");
-
-    // Linux 'find' komutu ile tehlikeli olabilecek SUID dosyalarini ararız
-    let cikti = Command::new("find")
-        .args(["/usr/bin", "-perm", "-4000"])
-        .output()
-        .expect("Komut calistirilamadi");
-
-    if cikti.status.success() {
-        let sonuc = String::from_utf8_lossy(&cikti.stdout);
-        if sonuc.is_empty() {
-            println!("[-] Kritik SUID dosyasi bulunamadi.");
-        } else {
-            println!("[+] Bulunan Kritik Dosyalar:\n{}", sonuc);
-        }
-    } else {
-        println!("[!] Tarama sirasinda bir hata olustu. (Linux tabanli sistem gereklidir)");
-    }
-}
-
-use std::process::Command;
-
-fn main() {
-    // Program başladığında ekrana başlık yazar
-    println!("--- Yetki Yukseltme (Privilege Escalation) Araci ---");
+    // Fonksiyonları burada sırayla çağırıyoruz:
+    sistem_bilgilerini_topla();  // İlk bunu çalıştır
+    suid_taramasi_yap();         // Sonra bunu
+    yazilabilir_dosya_kontrolu(); // En son bunu
     
-    // 1. ADIM: Sistem bilgilerini topla (Burada çağırıyoruz)
-    sistem_bilgilerini_topla();
-
-    // 2. ADIM: SUID dosyalarını tara (Burada çağırıyoruz)
-    suid_taramasi_yap();
-
-    println!("\n[*] Tarama tamamlandi.");
+    println!("\n[*] Tum taramalar tamamlandi.");
 }
 
-// --- FONKSİYON TANIMLARI ---
-
+// 2. SİSTEM BİLGİSİ TOPLAMA FONKSİYONU
 fn sistem_bilgilerini_topla() {
     println!("\n[0] Genel Sistem Bilgileri Toplaniyor...");
     println!("----------------------------------------------");
@@ -63,6 +29,7 @@ fn sistem_bilgilerini_topla() {
     }
 }
 
+// 3. SUID TARAMA FONKSİYONU
 fn suid_taramasi_yap() {
     println!("\n[1] SUID Yetkili Dosyalar Kontrol Ediliyor...");
     println!("----------------------------------------------");
@@ -79,7 +46,25 @@ fn suid_taramasi_yap() {
         } else {
             println!("[+] Bulunan Kritik Dosyalar:\n{}", sonuc);
         }
-    } else {
-        println!("[!] Tarama sirasinda bir hata olustu. (Linux tabanli sistem gereklidir)");
+    }
+}
+
+// 4. YAZILABİLİR DOSYA KONTROL FONKSİYONU
+fn yazilabilir_dosya_kontrolu() {
+    println!("\n[2] Yazilabilir Kritik Dosyalar Kontrol Ediliyor...");
+    println!("----------------------------------------------");
+
+    let cikti = Command::new("find")
+        .args([".", "-writable", "-type", "f"])
+        .output()
+        .expect("Komut calistirilamadi");
+
+    if cikti.status.success() {
+        let sonuc = String::from_utf8_lossy(&cikti.stdout);
+        if sonuc.is_empty() {
+            println!("[-] Su anki dizinde tehlikeli yazilabilir dosya bulunamadi.");
+        } else {
+            println!("[!] DIKKAT: Asagidaki dosyalara herkes yazabilir:\n{}", sonuc);
+        }
     }
 }
