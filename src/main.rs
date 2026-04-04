@@ -1,70 +1,64 @@
 use std::process::Command;
+use colored::*; // Renklendirme kütüphanesini kullan
 
-// 1. BURASI ANA MERKEZ (ORKESTRA ŞEFİ)
 fn main() {
-    println!("--- Yetki Yukseltme (Privilege Escalation) Araci ---");
+    println!("{}", "--- Yetki Yukseltme (Privilege Escalation) Araci ---".bright_cyan().bold());
     
-    // Fonksiyonları burada sırayla çağırıyoruz:
-    sistem_bilgilerini_topla();  // İlk bunu çalıştır
-    suid_taramasi_yap();         // Sonra bunu
-    yazilabilir_dosya_kontrolu(); // En son bunu
-    
-    println!("\n[*] Tum taramalar tamamlandi.");
+    sistem_bilgilerini_topla();
+    suid_taramasi_yap();
+    yazilabilir_dosya_kontrolu();
+
+    println!("\n{}", "[*] Tum taramalar basariyla tamamlandi.".green().bold());
 }
 
-// 2. SİSTEM BİLGİSİ TOPLAMA FONKSİYONU
 fn sistem_bilgilerini_topla() {
-    println!("\n[0] Genel Sistem Bilgileri Toplaniyor...");
+    println!("\n{}", "[0] Genel Sistem Bilgileri Toplaniyor...".blue());
     println!("----------------------------------------------");
 
     let user = Command::new("whoami").output().ok();
-    let kernel = Command::new("uname").arg("-a").output().ok();
-
     if let Some(u) = user {
-        println!("[+] Mevcut Kullanici: {}", String::from_utf8_lossy(&u.stdout).trim());
-    }
-    
-    if let Some(k) = kernel {
-        println!("[+] Kernel Surumu: {}", String::from_utf8_lossy(&k.stdout).trim());
+        let name = String::from_utf8_lossy(&u.stdout).trim().to_string();
+        println!("[+] Mevcut Kullanici: {}", name.yellow());
     }
 }
 
-// 3. SUID TARAMA FONKSİYONU
 fn suid_taramasi_yap() {
-    println!("\n[1] SUID Yetkili Dosyalar Kontrol Ediliyor...");
+    println!("\n{}", "[1] SUID Yetkili Dosyalar Kontrol Ediliyor...".blue());
     println!("----------------------------------------------");
 
     let cikti = Command::new("find")
         .args(["/usr/bin", "-perm", "-4000"])
-        .output()
-        .expect("Komut calistirilamadi");
+        .output();
 
-    if cikti.status.success() {
-        let sonuc = String::from_utf8_lossy(&cikti.stdout);
-        if sonuc.is_empty() {
-            println!("[-] Kritik SUID dosyasi bulunamadi.");
-        } else {
-            println!("[+] Bulunan Kritik Dosyalar:\n{}", sonuc);
-        }
+    match cikti {
+        Ok(o) => {
+            let sonuc = String::from_utf8_lossy(&o.stdout);
+            if sonuc.is_empty() {
+                println!("{}", "[-] Kritik SUID dosyasi bulunamadi.".green());
+            } else {
+                println!("{}", "[!] Bulunan Kritik Dosyalar:".red().bold());
+                println!("{}", sonuc);
+            }
+        },
+        Err(_) => println!("{}", "[!] Hata: Bu tarama sadece Linux sistemlerde calisir.".on_red()),
     }
 }
 
-// 4. YAZILABİLİR DOSYA KONTROL FONKSİYONU
 fn yazilabilir_dosya_kontrolu() {
-    println!("\n[2] Yazilabilir Kritik Dosyalar Kontrol Ediliyor...");
+    println!("\n{}", "[2] Yazilabilir Kritik Dosyalar Kontrol Ediliyor...".blue());
     println!("----------------------------------------------");
 
     let cikti = Command::new("find")
         .args([".", "-writable", "-type", "f"])
-        .output()
-        .expect("Komut calistirilamadi");
+        .output();
 
-    if cikti.status.success() {
-        let sonuc = String::from_utf8_lossy(&cikti.stdout);
+    if let Ok(o) = cikti {
+        let sonuc = String::from_utf8_lossy(&o.stdout);
         if sonuc.is_empty() {
-            println!("[-] Su anki dizinde tehlikeli yazilabilir dosya bulunamadi.");
+            println!("{}", "[-] Tehlikeli yazilabilir dosya bulunamadi.".green());
         } else {
-            println!("[!] DIKKAT: Asagidaki dosyalara herkes yazabilir:\n{}", sonuc);
+            println!("{}", "[!] DIKKAT: Yazilabilir dosyalar var!".red().bold());
+            println!("{}", sonuc);
         }
     }
 }
