@@ -1,64 +1,86 @@
 use std::process::Command;
-use colored::*; // Renklendirme kütüphanesini kullan
+use std::fs::File;
+use std::io::Write;
+use colored::*;
 
 fn main() {
+    let mut rapor_icerigi = String::new();
+    rapor_icerigi.push_str("--- YETKI YUKSELTME TARAMA RAPORU ---\n\n");
+
     println!("{}", "--- Yetki Yukseltme (Privilege Escalation) Araci ---".bright_cyan().bold());
     
-    sistem_bilgilerini_topla();
-    suid_taramasi_yap();
-    yazilabilir_dosya_kontrolu();
+    // 1. Sistem Bilgileri
+    let sistem_bilgisi = sistem_bilgilerini_topla();
+    rapor_icerigi.push_str(&sistem_bilgisi);
 
-    println!("\n{}", "[*] Tum taramalar basariyla tamamlandi.".green().bold());
+    // 2. SUID Taraması
+    let suid_bilgisi = suid_taramasi_yap();
+    rapor_icerigi.push_str(&suid_bilgisi);
+
+    // 3. Yazılabilir Dosya Kontrolü
+    let yazilabilir_bilgisi = yazilabilir_dosya_kontrolu();
+    rapor_icerigi.push_str(&yazilabilir_bilgisi);
+
+    // Raporu Dosyaya Kaydet
+    match File::create("tarama_raporu.txt") {
+        Ok(mut dosya) => {
+            dosya.write_all(rapor_icerigi.as_bytes()).expect("Dosyaya yazilamadi");
+            println!("\n{}", "[+] Tarama sonuclari 'tarama_raporu.txt' dosyasina kaydedildi.".yellow().bold());
+        },
+        Err(_) => println!("\n[!] Hata: Rapor dosyasi olusturulamadi."),
+    }
+
+    println!("\n{}", "[*] Tum islemler tamamlandi.".green().bold());
 }
 
-fn sistem_bilgilerini_topla() {
+fn sistem_bilgilerini_topla() -> String {
+    let mut log = String::from("[0] GENEL SISTEM BILGILERI\n");
     println!("\n{}", "[0] Genel Sistem Bilgileri Toplaniyor...".blue());
-    println!("----------------------------------------------");
 
     let user = Command::new("whoami").output().ok();
     if let Some(u) = user {
         let name = String::from_utf8_lossy(&u.stdout).trim().to_string();
         println!("[+] Mevcut Kullanici: {}", name.yellow());
+        log.push_str(&format!("Kullanici: {}\n", name));
     }
+    log.push_str("--------------------------\n");
+    log
 }
 
-fn suid_taramasi_yap() {
+fn suid_taramasi_yap() -> String {
+    let mut log = String::from("\n[1] SUID DOSYALARI\n");
     println!("\n{}", "[1] SUID Yetkili Dosyalar Kontrol Ediliyor...".blue());
-    println!("----------------------------------------------");
 
-    let cikti = Command::new("find")
-        .args(["/usr/bin", "-perm", "-4000"])
-        .output();
-
-    match cikti {
-        Ok(o) => {
-            let sonuc = String::from_utf8_lossy(&o.stdout);
-            if sonuc.is_empty() {
-                println!("{}", "[-] Kritik SUID dosyasi bulunamadi.".green());
-            } else {
-                println!("{}", "[!] Bulunan Kritik Dosyalar:".red().bold());
-                println!("{}", sonuc);
-            }
-        },
-        Err(_) => println!("{}", "[!] Hata: Bu tarama sadece Linux sistemlerde calisir.".on_red()),
-    }
-}
-
-fn yazilabilir_dosya_kontrolu() {
-    println!("\n{}", "[2] Yazilabilir Kritik Dosyalar Kontrol Ediliyor...".blue());
-    println!("----------------------------------------------");
-
-    let cikti = Command::new("find")
-        .args([".", "-writable", "-type", "f"])
-        .output();
+    let cikti = Command::new("find").args(["/usr/bin", "-perm", "-4000"]).output();
 
     if let Ok(o) = cikti {
         let sonuc = String::from_utf8_lossy(&o.stdout);
+        log.push_str(&sonuc);
         if sonuc.is_empty() {
-            println!("{}", "[-] Tehlikeli yazilabilir dosya bulunamadi.".green());
+            println!("{}", "[-] SUID dosyasi bulunamadi.".green());
         } else {
-            println!("{}", "[!] DIKKAT: Yazilabilir dosyalar var!".red().bold());
-            println!("{}", sonuc);
+            println!("{}", "[!] SUID dosyalari tespit edildi ve rapora eklendi.".red());
         }
     }
+    log.push_str("--------------------------\n");
+    log
+}
+
+fn yazilabilir_dosya_kontrolu() -> String {
+    let mut log = String::from("\n[2] YAZILABILIR DOSYALAR\n");
+    println!("\n{}", "[2] Yazilabilir Kritik Dosyalar Kontrol Ediliyor...".blue());
+
+    let cikti = Command::new("find").args([".", "-writable", "-type", "f"]).output();
+
+    if let Ok(o) = cikti {
+        let sonuc = String::from_utf8_lossy(&o.stdout);
+        log.push_str(&sonuc);
+        if sonuc.is_empty() {
+            println!("{}", "[-] Yazilabilir dosya bulunamadi.".green());
+        } else {
+            println!("{}", "[!] Yazilabilir dosyalar tespit edildi ve rapora eklendi.".red());
+        }
+    }
+    log.push_str("--------------------------\n");
+    log
 }
