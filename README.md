@@ -40,3 +40,17 @@ Projeyi çalıştırmak için bilgisayarınızda Rust kurulu olmalıdır:
 3. Aşağıdaki komutu çalıştırın:
    ```bash
    cargo run
+
+   ## 🛠 Teknik Analiz ve Derinlik
+
+### 1. Mimari Seçimi (Neden Rust ve Modüler Yapı?)
+* **Güvenlik (Memory Safety):** Proje için Rust seçildi çünkü bellek güvenliği (memory safety) hatalarını derleme aşamasında önler. Siber güvenlik araçlarında "buffer overflow" gibi açıkların olmaması kritiktir.
+* **Modülerlik:** Kodun `main.rs` ve `scanner.rs` olarak ayrılması, projenin ölçeklenebilirliğini sağlar. Yeni tarama modülleri (örn: network scanner) eklendiğinde ana mantık bozulmadan sisteme entegre edilebilir.
+
+### 2. Güvenlik Sonuçları ve Etki Analizi
+* **SUID Taraması:** Yanlış yapılandırılmış bir SUID dosyası, saldırganın saniyeler içinde "root" yetkisine ulaşmasına neden olur.
+* **Hassas Dosya Erişimi:** `/etc/shadow` gibi dosyaların okunabilir olması, parolanın offline olarak kırılabileceği anlamına gelir. Aracımız bu zafiyetleri önceden tespit ederek sistem sıkılaştırma (hardening) sürecine katkı sağlar.
+
+### 3. Gelecek Geliştirmeler ve İyileştirme Planı
+* **Dinamik Exploit Veritabanı:** Araç, gelecekte bilinen kernel açıklarını (CVE) bir API üzerinden çekerek otomatik exploit önerisi sunacak şekilde genişletilebilir.
+* **JSON Çıktı Desteği:** SIEM sistemlerine (Splunk, ELK) veri basabilmesi için tarama sonuçlarının JSON formatında dışa aktarılması planlanmaktadır.
