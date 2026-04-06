@@ -1,35 +1,37 @@
-mod scanner; // scanner.rs dosyasını projeye dahil eder
+mod scanner;
 use std::fs::File;
 use std::io::Write;
 use colored::*;
 
 fn main() {
-    let mut rapor_icerigi = String::new();
-    rapor_icerigi.push_str("--- YETKI YUKSELTME TARAMA RAPORU ---\n\n");
+    // [1. HAMLE] Profesyonel Açılış Banner'ı
+    println!("{}", "===================================================".green());
+    println!("{}", "   PRIVILEGE ESCALATION SCANNER - v1.1.0".bright_red().bold());
+    println!("{}", "   Gelistirici: Efedogu | Isik Universitesi".bright_yellow());
+    println!("{}", "===================================================".green());
 
-    println!("{}", "--- Yetki Yukseltme (Privilege Escalation) Araci ---".bright_cyan().bold());
+    let mut rapor = String::new();
+    rapor.push_str("--- YETKI YUKSELTME TARAMA RAPORU ---\n\n");
+
+    println!("{}", "\n[*] Tarama Baslatiliyor...".cyan());
     
-    // Fonksiyonları artık scanner:: ismiyle çağırıyoruz
-    let sistem_bilgisi = scanner::sistem_bilgilerini_topla();
-    rapor_icerigi.push_str(&sistem_bilgisi);
+    // Tarama Modülleri Çağrılıyor
+    rapor.push_str(&scanner::sistem_bilgilerini_topla());
+    rapor.push_str(&scanner::suid_taramasi_yap());
+    rapor.push_str(&scanner::yazilabilir_dosya_kontrolu());
+    rapor.push_str(&scanner::hassas_dosya_kontrolu());
 
-    let suid_bilgisi = scanner::suid_taramasi_yap();
-    rapor_icerigi.push_str(&suid_bilgisi);
-
-    let yazilabilir_bilgisi = scanner::yazilabilir_dosya_kontrolu();
-    rapor_icerigi.push_str(&yazilabilir_bilgisi);
-
-    let hassas_bilgi = scanner::hassas_dosya_kontrolu(); 
-    rapor_icerigi.push_str(&hassas_bilgi);
-
-    // Raporu Dosyaya Kaydet
+    // Raporu Dosyaya Yazma İşlemi
     match File::create("tarama_raporu.txt") {
         Ok(mut dosya) => {
-            dosya.write_all(rapor_icerigi.as_bytes()).expect("Dosyaya yazilamadi");
-            println!("\n{}", "[+] Tarama sonuclari 'tarama_raporu.txt' dosyasina kaydedildi.".yellow().bold());
+            if let Err(e) = dosya.write_all(rapor.as_bytes()) {
+                println!("{}: {}", "[-] Rapor yazilirken hata olustu".red(), e);
+            } else {
+                println!("\n{}", "[+] Tum sonuclar 'tarama_raporu.txt' dosyasina kaydedildi.".yellow().bold());
+            }
         },
-        Err(_) => println!("\n[!] Hata: Rapor dosyasi olusturulamadi."),
+        Err(e) => println!("{}: {}", "[-] Rapor dosyasi olusturulamadi".red(), e),
     }
 
-    println!("\n{}", "[*] Tum islemler tamamlandi.".green().bold());
+    println!("\n{}", "[*] Tarama ve raporlama islemi basariyla tamamlandi.".green().bold());
 }

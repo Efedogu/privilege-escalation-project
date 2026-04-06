@@ -17,26 +17,37 @@ pub fn sistem_bilgilerini_topla() -> String {
     log
 }
 
-/// SUID (Set User ID) yetkisine sahip dosyaları tarar.
-/// Yanlış yapılandırılmış SUID dosyaları doğrudan root yetkisi verebilir.
+/// [GÜNCEL] SUID taramasını hata yönetimli (Result) şekilde yapar.
 pub fn suid_taramasi_yap() -> String {
     let mut log = String::from("\n[1] SUID DOSYALARI\n");
-    println!("\n{}", "[1] SUID Yetkili Dosyalar Kontrol Ediliyor...".blue());
+    println!("\n{}", "[1] SUID Yetkili Dosyalar Kontrol Ediliyor...".blue().bold());
+    println!("----------------------------------------------");
 
-    let cikti = Command::new("find").args(["/usr/bin", "-perm", "-4000"]).output();
+    // Komutu güvenli bir şekilde çalıştırıyoruz
+    let cikti = Command::new("find")
+        .args(["/usr/bin", "-perm", "-4000"])
+        .output();
 
-    if let Ok(o) = cikti {
-        let sonuc = String::from_utf8_lossy(&o.stdout);
-        log.push_str(&sonuc);
-        if sonuc.is_empty() {
-            println!("{}", "[-] SUID dosyasi bulunamadi.".green());
-        } else {
-            println!("{}", "[!] SUID dosyalari tespit edildi ve rapora eklendi.".red());
+    match cikti {
+        Ok(o) => {
+            let sonuc = String::from_utf8_lossy(&o.stdout);
+            log.push_str(&sonuc);
+            if sonuc.is_empty() {
+                println!("{}", "[-] Kritik SUID dosyasi bulunamadi.".green());
+            } else {
+                println!("{}", "[!] SUID dosyalari tespit edildi.".red().bold());
+            }
+        },
+        Err(e) => {
+            let hata_mesaji = format!("[!] HATA: Komut calistirilamadi: {}", e);
+            println!("{}", hata_mesaji.on_red());
+            log.push_str(&hata_mesaji);
         }
     }
     log.push_str("--------------------------\n");
     log
 }
+
 
 /// Mevcut dizindeki herkes tarafından yazılabilir dosyaları bulur.
 /// Konfigürasyon dosyalarına yetkisiz erişimi denetler.
@@ -73,6 +84,21 @@ pub fn hassas_dosya_kontrolu() -> String {
             log.push_str(&sonuc);
             println!("{}: {}", "Kontrol edildi".yellow(), dosya);
         }
+    }
+    log.push_str("--------------------------\n");
+    log
+}
+
+/// Sistemdeki zamanlanmis gorevleri (Cron Jobs) tarar.
+pub fn cron_taramasi_yap() -> String {
+    let mut log = String::from("\n[4] CRON GOREVLERI KONTROLU\n");
+    println!("\n{}", "[4] Zamanlanmis Gorevler (Cron) Denetleniyor...".blue().bold());
+    
+    let cikti = Command::new("ls").args(["-la", "/etc/cron.d"]).output();
+    if let Ok(o) = cikti {
+        let sonuc = String::from_utf8_lossy(&o.stdout);
+        log.push_str(&sonuc);
+        println!("{}", "[+] Cron dizini listelendi.".yellow());
     }
     log.push_str("--------------------------\n");
     log
