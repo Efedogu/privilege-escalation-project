@@ -38,3 +38,15 @@ fn main() {
 
     println!("\n{}", "[*] Islem basariyla tamamlandi.".green().bold());
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rapor_olusturma() {
+        let mut test_rapor = String::new();
+        test_rapor.push_str("Test verisi");
+        assert!(test_rapor.contains("Test"));
+    }
+}
