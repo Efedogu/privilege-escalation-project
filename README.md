@@ -1,3 +1,19 @@
+# İstinye Üniversitesi - Privilege Escalation Project
+<p align="center">
+  <img src="https://www.istinye.edu.tr/sites/default/files/logo_0.png" width="200">
+</p>
+
+## 📌 İçindekiler
+* [Proje Hakkında](#proje-hakkında)
+* [Kurulum](#kurulum)
+* [Kullanım](#kullanım)
+* [Özellikler](#özellikler)
+* [Lisans](#lisans)
+
+## 📖 Proje Hakkında
+Bu proje, Linux sistemlerde yetki yükseltme (Privilege Escalation) açıklarını tespit etmek için geliştirilmiş bir güvenlik aracıdır.
+
+**Danışman:** [Hocanın Adı Buraya]
 # Privilege Escalation (Yetki Yükseltme) Analiz Aracı
 
 Bu proje, Linux tabanlı sistemlerdeki potansiyel yetki yükseltme (Privilege Escalation) zafiyetlerini tespit etmek amacıyla **Rust** dili kullanılarak geliştirilmiş bir güvenlik analiz aracıdır.
