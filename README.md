@@ -41,7 +41,7 @@ Projeyi çalıştırmak için bilgisayarınızda Rust kurulu olmalıdır:
    ```bash
    cargo run
 
-   ## 🛠 Teknik Analiz ve Derinlik
+## 🛠 Teknik Analiz ve Derinlik
 
 ### 1. Mimari Seçimi (Neden Rust ve Modüler Yapı?)
 * **Güvenlik (Memory Safety):** Proje için Rust seçildi çünkü bellek güvenliği (memory safety) hatalarını derleme aşamasında önler. Siber güvenlik araçlarında "buffer overflow" gibi açıkların olmaması kritiktir.

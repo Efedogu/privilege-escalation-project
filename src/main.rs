@@ -4,7 +4,7 @@ use std::io::Write;
 use colored::*;
 
 fn main() {
-    // [1. HAMLE] Profesyonel Açılış Banner'ı
+    // Banner ve Tasarim
     println!("{}", "===================================================".green());
     println!("{}", "   PRIVILEGE ESCALATION SCANNER - v1.1.0".bright_red().bold());
     println!("{}", "   Gelistirici: Efedogu | Istinye Universitesi".bright_yellow());
@@ -13,25 +13,21 @@ fn main() {
     let mut rapor = String::new();
     rapor.push_str("--- YETKI YUKSELTME TARAMA RAPORU ---\n\n");
 
-    println!("{}", "\n[*] Tarama Baslatiliyor...".cyan());
-    
-    // Tarama Modülleri Çağrılıyor
+    // Fonksiyonlari Sirayla Calistir
     rapor.push_str(&scanner::sistem_bilgilerini_topla());
     rapor.push_str(&scanner::suid_taramasi_yap());
     rapor.push_str(&scanner::yazilabilir_dosya_kontrolu());
     rapor.push_str(&scanner::hassas_dosya_kontrolu());
+    rapor.push_str(&scanner::cron_taramasi_yap());
 
-    // Raporu Dosyaya Yazma İşlemi
+    // Dosyaya Yazdir
     match File::create("tarama_raporu.txt") {
         Ok(mut dosya) => {
-            if let Err(e) = dosya.write_all(rapor.as_bytes()) {
-                println!("{}: {}", "[-] Rapor yazilirken hata olustu".red(), e);
-            } else {
-                println!("\n{}", "[+] Tum sonuclar 'tarama_raporu.txt' dosyasina kaydedildi.".yellow().bold());
-            }
+            dosya.write_all(rapor.as_bytes()).expect("Yazma hatasi");
+            println!("\n{}", "[+] Rapor 'tarama_raporu.txt' olarak kaydedildi.".yellow().bold());
         },
-        Err(e) => println!("{}: {}", "[-] Rapor dosyasi olusturulamadi".red(), e),
+        Err(e) => println!("Hata: {}", e),
     }
 
-    println!("\n{}", "[*] Tarama ve raporlama islemi basariyla tamamlandi.".green().bold());
+    println!("\n{}", "[*] Islem basariyla tamamlandi.".green().bold());
 }
