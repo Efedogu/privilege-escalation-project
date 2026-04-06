@@ -7,7 +7,7 @@ fn main() {
     // [1. HAMLE] Profesyonel Açılış Banner'ı
     println!("{}", "===================================================".green());
     println!("{}", "   PRIVILEGE ESCALATION SCANNER - v1.1.0".bright_red().bold());
-    println!("{}", "   Gelistirici: Efedogu | Isik Universitesi".bright_yellow());
+    println!("{}", "   Gelistirici: Efedogu | Istinye Universitesi".bright_yellow());
     println!("{}", "===================================================".green());
 
     let mut rapor = String::new();
