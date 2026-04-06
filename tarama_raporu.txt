@@ -12,3 +12,6 @@ Kullanici: desktop-kbqee34\yanef
 
 [3] HASSAS DOSYA ERISIM KONTROLU
 --------------------------
+
+[4] CRON GOREVLERI KONTROLU
+--------------------------
