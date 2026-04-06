@@ -4,6 +4,13 @@ use std::io::Write;
 use colored::*;
 
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() > 1 && (args[1] == "-h" || args[1] == "--help") {
+        println!("{}", "Kullanim: cargo run".bright_green());
+        println!("Seçenekler:");
+        println!("  -h, --help    Yardim menusunu gosterir");
+        return;
+    }
     // Banner ve Tasarim
     println!("{}", "===================================================".green());
     println!("{}", "   PRIVILEGE ESCALATION SCANNER - v1.1.0".bright_red().bold());
