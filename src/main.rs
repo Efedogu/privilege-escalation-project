@@ -84,3 +84,22 @@ fn yazilabilir_dosya_kontrolu() -> String {
     log.push_str("--------------------------\n");
     log
 }
+
+fn hassas_dosya_kontrolu() -> String {
+    let mut log = String::from("\n[3] HASSAS DOSYA ERISIM KONTROLU\n");
+    println!("\n{}", "[3] Hassas Dosya Erisimleri Denetleniyor...".blue());
+
+    // Linux'ta normalde okunmaması gereken dosya
+    let dosyalar = vec!["/etc/shadow", "/etc/sudoers", "/root/.bash_history"];
+    
+    for dosya in dosyalar {
+        let cikti = Command::new("ls").arg("-l").arg(dosya).output();
+        if let Ok(o) = cikti {
+            let sonuc = String::from_utf8_lossy(&o.stdout);
+            log.push_str(&sonuc);
+            println!("{}: {}", "Kontrol edildi".yellow(), dosya);
+        }
+    }
+    log.push_str("--------------------------\n");
+    log
+}
