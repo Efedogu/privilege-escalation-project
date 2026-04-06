@@ -1,0 +1,14 @@
+--- YETKI YUKSELTME TARAMA RAPORU ---
+
+[0] GENEL SISTEM BILGILERI
+Kullanici: desktop-kbqee34\yanef
+--------------------------
+
+[1] SUID DOSYALARI
+--------------------------
+
+[2] YAZILABILIR DOSYALAR
+--------------------------
+
+[3] HASSAS DOSYA ERISIM KONTROLU
+--------------------------
