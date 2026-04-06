@@ -23,8 +23,11 @@ pub fn suid_taramasi_yap() -> String {
     if let Ok(o) = cikti {
         let sonuc = String::from_utf8_lossy(&o.stdout);
         log.push_str(&sonuc);
-        if sonuc.is_empty() { println!("{}", "[-] SUID dosyasi bulunamadi.".green()); }
-        else { println!("{}", "[!] SUID dosyalari tespit edildi.".red().bold()); }
+        if sonuc.is_empty() { 
+            println!("{}", "[-] SUID dosyasi bulunamadi.".green()); 
+        } else { 
+            println!("{}", "[!] SUID dosyalari tespit edildi.".red().bold()); 
+        }
     }
     log.push_str("--------------------------\n");
     log
