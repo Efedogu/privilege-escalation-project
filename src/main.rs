@@ -1,4 +1,4 @@
-use std::process::Command;
+mod scanner; // scanner.rs dosyasını projeye dahil eder
 use std::fs::File;
 use std::io::Write;
 use colored::*;
@@ -9,17 +9,18 @@ fn main() {
 
     println!("{}", "--- Yetki Yukseltme (Privilege Escalation) Araci ---".bright_cyan().bold());
     
-    // 1. Sistem Bilgileri
-    let sistem_bilgisi = sistem_bilgilerini_topla();
+    // Fonksiyonları artık scanner:: ismiyle çağırıyoruz
+    let sistem_bilgisi = scanner::sistem_bilgilerini_topla();
     rapor_icerigi.push_str(&sistem_bilgisi);
 
-    // 2. SUID Taraması
-    let suid_bilgisi = suid_taramasi_yap();
+    let suid_bilgisi = scanner::suid_taramasi_yap();
     rapor_icerigi.push_str(&suid_bilgisi);
 
-    // 3. Yazılabilir Dosya Kontrolü
-    let yazilabilir_bilgisi = yazilabilir_dosya_kontrolu();
+    let yazilabilir_bilgisi = scanner::yazilabilir_dosya_kontrolu();
     rapor_icerigi.push_str(&yazilabilir_bilgisi);
+
+    let hassas_bilgi = scanner::hassas_dosya_kontrolu(); 
+    rapor_icerigi.push_str(&hassas_bilgi);
 
     // Raporu Dosyaya Kaydet
     match File::create("tarama_raporu.txt") {
@@ -31,75 +32,4 @@ fn main() {
     }
 
     println!("\n{}", "[*] Tum islemler tamamlandi.".green().bold());
-}
-
-fn sistem_bilgilerini_topla() -> String {
-    let mut log = String::from("[0] GENEL SISTEM BILGILERI\n");
-    println!("\n{}", "[0] Genel Sistem Bilgileri Toplaniyor...".blue());
-
-    let user = Command::new("whoami").output().ok();
-    if let Some(u) = user {
-        let name = String::from_utf8_lossy(&u.stdout).trim().to_string();
-        println!("[+] Mevcut Kullanici: {}", name.yellow());
-        log.push_str(&format!("Kullanici: {}\n", name));
-    }
-    log.push_str("--------------------------\n");
-    log
-}
-
-fn suid_taramasi_yap() -> String {
-    let mut log = String::from("\n[1] SUID DOSYALARI\n");
-    println!("\n{}", "[1] SUID Yetkili Dosyalar Kontrol Ediliyor...".blue());
-
-    let cikti = Command::new("find").args(["/usr/bin", "-perm", "-4000"]).output();
-
-    if let Ok(o) = cikti {
-        let sonuc = String::from_utf8_lossy(&o.stdout);
-        log.push_str(&sonuc);
-        if sonuc.is_empty() {
-            println!("{}", "[-] SUID dosyasi bulunamadi.".green());
-        } else {
-            println!("{}", "[!] SUID dosyalari tespit edildi ve rapora eklendi.".red());
-        }
-    }
-    log.push_str("--------------------------\n");
-    log
-}
-
-fn yazilabilir_dosya_kontrolu() -> String {
-    let mut log = String::from("\n[2] YAZILABILIR DOSYALAR\n");
-    println!("\n{}", "[2] Yazilabilir Kritik Dosyalar Kontrol Ediliyor...".blue());
-
-    let cikti = Command::new("find").args([".", "-writable", "-type", "f"]).output();
-
-    if let Ok(o) = cikti {
-        let sonuc = String::from_utf8_lossy(&o.stdout);
-        log.push_str(&sonuc);
-        if sonuc.is_empty() {
-            println!("{}", "[-] Yazilabilir dosya bulunamadi.".green());
-        } else {
-            println!("{}", "[!] Yazilabilir dosyalar tespit edildi ve rapora eklendi.".red());
-        }
-    }
-    log.push_str("--------------------------\n");
-    log
-}
-
-fn hassas_dosya_kontrolu() -> String {
-    let mut log = String::from("\n[3] HASSAS DOSYA ERISIM KONTROLU\n");
-    println!("\n{}", "[3] Hassas Dosya Erisimleri Denetleniyor...".blue());
-
-    // Linux'ta normalde okunmaması gereken dosya
-    let dosyalar = vec!["/etc/shadow", "/etc/sudoers", "/root/.bash_history"];
-    
-    for dosya in dosyalar {
-        let cikti = Command::new("ls").arg("-l").arg(dosya).output();
-        if let Ok(o) = cikti {
-            let sonuc = String::from_utf8_lossy(&o.stdout);
-            log.push_str(&sonuc);
-            println!("{}: {}", "Kontrol edildi".yellow(), dosya);
-        }
-    }
-    log.push_str("--------------------------\n");
-    log
 }
